@@ -1,0 +1,236 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
+
+public class TicTacToe extends JFrame implements ActionListener {
+    private JButton[] buttons = new JButton[9];
+    private JLabel playerXLabel, playerOLabel;
+    private int playerXPoints = 0, playerOPoints = 0;
+    private boolean isXTurn = true;
+    private Random random = new Random();
+    private boolean againstBot = false;
+
+    public TicTacToe(boolean againstBot) {
+        this.againstBot = againstBot;
+        initializeUI();
+    }
+
+    private void initializeUI() {
+        setTitle("Home Made TicTacToe (•'v'•)");
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        JPanel titlePanel = new JPanel();
+        JLabel titleLabel = new JLabel("Home made TicTacToe");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        titlePanel.add(titleLabel);
+        add(titlePanel, BorderLayout.NORTH);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 3));
+        for (int i = 0; i < 9; i++) {
+            buttons[i] = new JButton("");
+            buttons[i].setFont(new Font("Arial", Font.PLAIN, 60));
+            buttons[i].setFocusable(false);
+            buttons[i].addActionListener(this);
+            panel.add(buttons[i]);
+        }
+
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        playerXLabel = new JLabel("Player X: " + playerXPoints);
+        playerXLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        playerOLabel = new JLabel("Player O: " + playerOPoints);
+        playerOLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+
+        JButton newGameButton = new JButton("New Game");
+        newGameButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        newGameButton.addActionListener(e -> showGameModeWindow());
+
+        JButton resetButton = new JButton("Reset");
+        resetButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        resetButton.addActionListener(e -> resetPoints());
+
+        JButton exitButton = new JButton("Exit");
+        exitButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        exitButton.addActionListener(e -> System.exit(0));
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        rightPanel.add(playerXLabel, gbc);
+        gbc.gridy = 1;
+        rightPanel.add(playerOLabel, gbc);
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        rightPanel.add(newGameButton, gbc);
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        rightPanel.add(resetButton, gbc);
+        gbc.gridx = 1;
+        rightPanel.add(exitButton, gbc);
+
+        add(panel, BorderLayout.CENTER);
+        add(rightPanel, BorderLayout.EAST);
+
+        setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        JButton buttonClicked = (JButton) e.getSource();
+        if (buttonClicked.getText().equals("")) {
+            if (isXTurn) {
+                buttonClicked.setText("X");
+            } else {
+                buttonClicked.setText("O");
+            }
+            isXTurn = !isXTurn;
+            checkWinner();
+            if (againstBot && !isXTurn) {
+                botMove();
+            }
+        }
+    }
+
+    private void resetPoints() {
+        playerXPoints = 0;
+        playerOPoints = 0;
+        updatePoints();
+        clearBoard();
+    }
+
+    private void updatePoints() {
+        playerXLabel.setText("Player X: " + playerXPoints);
+        playerOLabel.setText("Player O: " + playerOPoints);
+    }
+
+    private void checkWinner() {
+        String[][] board = new String[3][3];
+        for (int i = 0; i < 9; i++) {
+            board[i / 3][i % 3] = buttons[i].getText();
+        }
+
+        for (int i = 0; i < 3; i++) {
+            if (board[i][0].equals(board[i][1]) && board[i][1].equals(board[i][2]) && !board[i][0].equals("")) {
+                announceWinner(board[i][0]);
+                return;
+            }
+            if (board[0][i].equals(board[1][i]) && board[1][i].equals(board[2][i]) && !board[0][i].equals("")) {
+                announceWinner(board[0][i]);
+                return;
+            }
+        }
+
+        if (board[0][0].equals(board[1][1]) && board[1][1].equals(board[2][2]) && !board[0][0].equals("")) {
+            announceWinner(board[0][0]);
+            return;
+        }
+
+        if (board[0][2].equals(board[1][1]) && board[1][1].equals(board[2][0]) && !board[0][2].equals("")) {
+            announceWinner(board[0][2]);
+            return;
+        }
+
+        boolean draw = true;
+        for (JButton button : buttons) {
+            if (button.getText().equals("")) {
+                draw = false;
+                break;
+            }
+        }
+
+        if (draw) {
+            JOptionPane.showMessageDialog(this, "It's a Draw!");
+            clearBoard();
+        }
+    }
+
+    private void announceWinner(String winner) {
+        if (winner.equals("X")) {
+            playerXPoints++;
+        } else {
+            playerOPoints++;
+        }
+        updatePoints();
+        JOptionPane.showMessageDialog(this, "Player " + winner + " wins!");
+        clearBoard();
+    }
+
+    private void clearBoard() {
+        for (JButton button : buttons) {
+            button.setText("");
+        }
+        isXTurn = true;
+    }
+
+    private void botMove() {
+        int move;
+        do {
+            move = random.nextInt(9);
+        } while (!buttons[move].getText().equals(""));
+        buttons[move].setText("O");
+        isXTurn = true;
+        checkWinner();
+    }
+
+    private void showGameModeWindow() {
+        JFrame modeFrame = new JFrame("Select Game Mode");
+        modeFrame.setSize(300, 200);
+        modeFrame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        modeFrame.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        JLabel modeLabel = new JLabel("Choose Game Mode:");
+        modeLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+
+        JRadioButton vsHumanButton = new JRadioButton("Vs Human");
+        vsHumanButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        vsHumanButton.setSelected(true);
+
+        JRadioButton vsBotButton = new JRadioButton("Vs Bot");
+        vsBotButton.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(vsHumanButton);
+        group.add(vsBotButton);
+
+        JButton startButton = new JButton("Start Game");
+        startButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        startButton.addActionListener(e -> {
+            boolean againstBot = vsBotButton.isSelected();
+            modeFrame.dispose();
+            resetGame(againstBot);
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        modeFrame.add(modeLabel, gbc);
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        modeFrame.add(vsHumanButton, gbc);
+        gbc.gridx = 1;
+        modeFrame.add(vsBotButton, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        modeFrame.add(startButton, gbc);
+
+        modeFrame.setVisible(true);
+    }
+
+    private void resetGame(boolean againstBot) {
+        this.againstBot = againstBot;
+        clearBoard();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new TicTacToe(false));
+    }
+}
