@@ -1,6 +1,4 @@
 import javax.swing.JButton;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class HumanPlayer extends Player {
 
@@ -12,5 +10,10 @@ public class HumanPlayer extends Player {
         if (tile.getText().equals("")) {
             tile.setText(symbol);
         }
+    }
+
+    @Override
+    public void makeMove() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
